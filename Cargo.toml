@@ -1,9 +1,12 @@
 [package]
-name = "avr-project"
+name = "avr-i2c"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+
+[features]
+hardware-atmega328p = []
 
 [profile.release]
 lto = true
