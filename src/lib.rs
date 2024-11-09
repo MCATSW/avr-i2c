@@ -1,6 +1,7 @@
 #![no_std]
 
-pub mod hardware;
+#[cfg(feature = "hardware-atmega328p")]
+pub mod hardware_atmega328p;
 
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, PartialEq)]
