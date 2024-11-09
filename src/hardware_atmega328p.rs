@@ -1,10 +1,14 @@
+//! A hardware implementation of I2C for the ATMega328P.
+
 use crate::{Direction, I2CBus};
 
+/// Represents the hardware 2-wire interface
 pub struct TWI {
     pub twbr: u8,
 }
 
 impl TWI {
+    /// Creates a new TWI instance
     pub const fn new(freq_hz: u32) -> Self {
         Self {
             twbr: (16_000_000 / (2 * freq_hz) - 8) as u8,
@@ -12,6 +16,7 @@ impl TWI {
     }
 }
 
+/// Represents status variants of the 2-wire status register
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TWSRStatus {
@@ -31,6 +36,13 @@ pub enum TWSRStatus {
 }
 
 impl TWSRStatus {
+    /// Translates a raw TWSR value to a variant of [`Self`].
+    ///
+    /// If `value` is a valid TWSR status value, a `Some`
+    /// value containing [`Self`] is returned.
+    /// Otherwise, `None` is returned.
+    ///
+    /// [`Self`]: Self
     pub fn from_byte(value: u8) -> Option<Self> {
         match value {
             0x00 => Some(Self::BusError),
@@ -51,17 +63,38 @@ impl TWSRStatus {
     }
 }
 
+/// The address of the 2-wire bit rate register
 pub const TWBR: *mut u8 = 0x00B8 as *mut u8;
+
+/// The address of the 2-wire status register
 pub const TWSR: *mut u8 = 0x00B9 as *mut u8;
+
+/// The address of the 2-wire data register
 pub const TWDR: *mut u8 = 0x00BB as *mut u8;
+
+/// The address of the 2-wire control register
 pub const TWCR: *mut u8 = 0x00BC as *mut u8;
 
+/// The mask for setting the TWCR interrupt bit
 pub const TWINT: u8 = 0x80;
+
+/// The mask for setting the TWCR enable acknowledge bit
 pub const TWEA: u8 = 0x40;
+
+/// The mask for setting the TWCR start condition bit
 pub const TWSTA: u8 = 0x20;
+
+/// The mask for setting the TWCR stop condition bit
 pub const TWSTO: u8 = 0x10;
+
+/// The mask for setting the TWCR enable bit
 pub const TWEN: u8 = 0x04;
 
+/// Awaits TWI hardware availability
+///
+/// Repeatedly polls the TWCR until it signifies that
+/// the TWI hardware has finished its assigned
+/// operation, then returns.
 pub fn await_hardware() {
     while unsafe { TWCR.read_volatile() } & TWINT == 0 {
         continue;
